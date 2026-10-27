@@ -2,7 +2,7 @@
 
 Restart every Claude Code session running in your [Orca](https://github.com/stablyai/orca) tabs onto the newly installed Claude Code version **with one double-click**. Each tab keeps its conversation, its model and its effort level.
 
-> Windows + PowerShell 7 only (for now). Built for exactly one annoyance: [stablyai/orca#10597](https://github.com/stablyai/orca/issues/10597).
+> Windows only (for now). Works with the built-in Windows PowerShell 5.1 and with PowerShell 7. Built for exactly one annoyance: [stablyai/orca#10597](https://github.com/stablyai/orca/issues/10597).
 
 [한국어 설명은 아래에 있습니다 ↓](#한국어)
 
@@ -41,18 +41,20 @@ It leaves a tab alone when:
 
 ## Usage
 
-Requirements: Windows, [PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows) (`pwsh`), Orca desktop running, `claude` on PATH.
+Requirements: Windows, Orca desktop running, `claude` on PATH. Any PowerShell: the built-in `powershell` (5.1) or `pwsh` (7). Replace `powershell` with `pwsh` below if you prefer.
 
 ```powershell
 # 1) See what would happen. Sends nothing.
-pwsh -File .\claude-restart-all.ps1 -DryRun
+powershell -ExecutionPolicy Bypass -File .\claude-restart-all.ps1 -DryRun
 
 # 2) Do it
-pwsh -File .\claude-restart-all.ps1
+powershell -ExecutionPolicy Bypass -File .\claude-restart-all.ps1
 
 # Only tabs whose title contains some text
-pwsh -File .\claude-restart-all.ps1 -Only "my-feature"
+powershell -ExecutionPolicy Bypass -File .\claude-restart-all.ps1 -Only "my-feature"
 ```
+
+`-ExecutionPolicy Bypass` applies to this one run only. Windows blocks downloaded, unsigned scripts by default, so without it you get *"cannot be loaded… not digitally signed"*. Alternatively run `Unblock-File .\claude-restart-all.ps1` once. Read the script first: it's ~130 lines.
 
 Example output:
 
@@ -75,10 +77,12 @@ Run once in PowerShell from the folder that holds the script:
 
 ```powershell
 $s = (New-Object -ComObject WScript.Shell).CreateShortcut("$([Environment]::GetFolderPath('Desktop'))\Restart all Claude.lnk")
-$s.TargetPath = (Get-Command pwsh).Source
-$s.Arguments  = "-NoProfile -NoExit -File `"$((Resolve-Path .\claude-restart-all.ps1).Path)`""
+$s.TargetPath = (Get-Command pwsh, powershell -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+$s.Arguments  = "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$((Resolve-Path .\claude-restart-all.ps1).Path)`""
 $s.Save()
 ```
+
+`GetFolderPath('Desktop')` finds the real Desktop folder whatever your Windows language is, including when OneDrive moves it.
 
 ## How it works (and how it was built)
 
@@ -109,6 +113,8 @@ Each of these was hit on a live tab and then fixed. They are the reason the scri
 ### Limitations
 
 - Windows only (paths and the `.exe` assumptions). PRs for macOS/Linux welcome.
+- Tested with the native installer (`~/.local/bin/claude.exe`), on PowerShell 5.1 and 7. npm installs (session process is `node`) are accepted but **not tested**.
+- It reads Claude Code's English UI text ("Yes, I trust this folder", "feedback draft", "· /effort"). Claude Code's terminal UI is English regardless of your Windows language, so the Windows language does not matter. It was developed on a Korean Windows.
 - Relies on undocumented Claude Code files (`sessions/*.json`, transcript record shapes). A future version may change them. The script then skips instead of guessing.
 - Model names are mapped from display names like `Opus 5.5` → `claude-opus-5-5`. Anything else (for example 1M-context variants set via `/model`) is skipped.
 - Tabs are matched by title. Two tabs with identical titles are skipped.
@@ -124,7 +130,8 @@ MIT
 
 Orca 탭 여러 개에서 Claude Code를 쓰다 보면, Claude Code가 업데이트될 때마다 탭마다 `✔ Update installed · Restart to update`가 뜹니다. 없애려면 탭을 하나하나 `/exit` → `claude --resume` 해야 합니다. 이 스크립트는 **더블클릭 한 번으로 전부** 처리합니다. 대화, 모델, 노력 수준은 그대로 유지됩니다.
 
-- 미리보기: `pwsh -File .\claude-restart-all.ps1 -DryRun`
-- 실행: `pwsh -File .\claude-restart-all.ps1`
+- 미리보기: `powershell -ExecutionPolicy Bypass -File .\claude-restart-all.ps1 -DryRun`
+- 실행: `powershell -ExecutionPolicy Bypass -File .\claude-restart-all.ps1`
+- 윈도우 기본 PowerShell 5.1과 PowerShell 7 모두 됩니다. 윈도우 언어(한글·영어)는 상관없습니다.
 - 작업 중인 탭, 입력창에 쓰던 글이 있는 탭, 보내지 않은 피드백 초안이 있는 탭, 이미 최신인 탭은 건드리지 않습니다.
 - 만든 과정과 시험하면서 실제로 겪은 실수 5가지는 위 **How it works** 절에 있습니다. Claude Code(Opus 5.5)가 Orca 안에서 한 세션 만에 만들고, 실제 탭에서 시험했습니다.

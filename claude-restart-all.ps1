@@ -1,4 +1,4 @@
-# Restart every Claude Code session running in Orca terminal tabs onto the newly installed
+﻿# Restart every Claude Code session running in Orca terminal tabs onto the newly installed
 # Claude Code version, in place, keeping each tab's conversation, model and effort level.
 #
 # For each tab: send /exit, then in the same tab run
@@ -60,8 +60,9 @@ $done = 0
 foreach ($f in Get-ChildItem "$claudeHome\sessions\*.json") {
   $s = Get-Content $f -Raw | ConvertFrom-Json
   $proc = Get-Process -Id $s.pid -ErrorAction SilentlyContinue
-  # after an update the running binary is renamed to claude.exe.old.<n>, so match the prefix
-  if (-not $proc -or $proc.ProcessName -notlike 'claude*' -or $s.kind -ne 'interactive') { continue }
+  # native install: after an update the running binary is renamed to claude.exe.old.<n>, so match the prefix
+  # npm install: the session process is node
+  if (-not $proc -or ($proc.ProcessName -notlike 'claude*' -and $proc.ProcessName -ne 'node') -or $s.kind -ne 'interactive') { continue }
 
   $file = Get-SessionFile $s.sessionId
   if (-not $file) { continue }
@@ -116,7 +117,8 @@ foreach ($f in Get-ChildItem "$claudeHome\sessions\*.json") {
 
   # double-check the effort shown at the bottom right of the new screen ("<effort> · /effort")
   Start-Sleep -Seconds 3
-  $shown = ((Read-Screen $h) | Select-String -Pattern '(low|medium|high|xhigh|max) · /effort' | Select-Object -Last 1).Matches.Groups[1].Value
+  $line = (Read-Screen $h) | Select-String -Pattern '(low|medium|high|xhigh|max) · /effort' | Select-Object -Last 1
+  $shown = if ($line) { $line.Matches[0].Groups[1].Value }
   if ($shown -and $shown -ne $effort) { "[check] $label - came up with effort $shown, expected $effort"; continue }
   "[done] $label - $($s.version) -> $latest · $model · $effort"; $done++
 }
