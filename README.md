@@ -4,7 +4,7 @@ Restart every Claude Code session running in your [Orca](https://github.com/stab
 
 > Windows only (for now). Works with the built-in Windows PowerShell 5.1 and with PowerShell 7. Built for exactly one annoyance: [stablyai/orca#10597](https://github.com/stablyai/orca/issues/10597).
 
-[한국어 설명은 아래에 있습니다 ↓](#한국어)
+[한국어 설명서 (Korean)](README.ko.md)
 
 ## The problem
 
@@ -134,4 +134,4 @@ Orca 탭 여러 개에서 Claude Code를 쓰다 보면, Claude Code가 업데이
 - 실행: `powershell -ExecutionPolicy Bypass -File .\claude-restart-all.ps1`
 - 윈도우 기본 PowerShell 5.1과 PowerShell 7 모두 됩니다. 윈도우 언어(한글·영어)는 상관없습니다.
 - 작업 중인 탭, 입력창에 쓰던 글이 있는 탭, 보내지 않은 피드백 초안이 있는 탭, 이미 최신인 탭은 건드리지 않습니다.
-- 만든 과정과 시험하면서 실제로 겪은 실수 5가지는 위 **How it works** 절에 있습니다. Claude Code(Opus 5.5)가 Orca 안에서 한 세션 만에 만들고, 실제 탭에서 시험했습니다.
+- 사용법, 바탕화면 아이콘 만들기, 만든 과정과 실제로 겪은 실수 5가지 전체는 **[한국어 설명서](README.ko.md)** 에 있습니다.
